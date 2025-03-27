@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "643393523819",
+    "project_id": "vtms-e3714",
+    "storage_bucket": "vtms-e3714.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:643393523819:android:a3857c74dc1cb1ae58e12e",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_10"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCe6FOXAiEirg4HYOHJdhN_V_e-xtcOHZA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
