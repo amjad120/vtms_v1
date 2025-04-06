@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_10/HomePage.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_application_10/Settings.dart';
+import 'package:flutter_application_10/action/AddVehicle.dart';
+import 'package:flutter_application_10/action/UpdateVehicle.dart';
 import 'package:flutter_application_10/auth/login.dart';
 import 'package:flutter_application_10/auth/signup.dart';
 
@@ -55,6 +58,8 @@ class _myappStates extends State<myapp> {
         "signup":(context)=> Signup(),
         "login":(context)=> Login(),
         "homepage":(context)=> Homepage(),
+        "addVehicle":(context)=> AddVehicle(),
+        "settings":(context)=> Settings(),
       },
     );
   }

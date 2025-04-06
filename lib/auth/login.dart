@@ -17,6 +17,8 @@ class _LoginState extends State<Login> {
   TextEditingController password = TextEditingController();
   GlobalKey<FormState> formState = GlobalKey<FormState>();
 
+  bool isLoading = false;
+
   Future signInWithGoogle() async {
     // Trigger the authentication flow
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
@@ -41,7 +43,7 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Container(
+        body:isLoading == true? Center(child: CircularProgressIndicator(),): Container(
       padding: EdgeInsets.all(20),
       child: ListView(
         children: [
@@ -124,7 +126,7 @@ class _LoginState extends State<Login> {
                       ).show();
                     } catch (e) {
                       print(e);
-                      //فيه مشكلة ما تشتغل ما ادري ليه بس 
+                      //فيه مشكلة ما تشتغل ما ادري ليه بس
                       AwesomeDialog(
                         context: context,
                         dialogType: DialogType.warning,
@@ -154,11 +156,17 @@ class _LoginState extends State<Login> {
               onPressed: () async {
                 if (formState.currentState!.validate()) {
                   try {
+                    isLoading = true;
+                    setState(() {});
                     UserCredential userCredential =
                         await FirebaseAuth.instance.signInWithEmailAndPassword(
                       email: email.text,
                       password: password.text,
                     );
+                    isLoading = false;
+                    setState(() {
+                      
+                    });
                     if (userCredential.user!.emailVerified) {
                       Navigator.of(context).pushReplacementNamed("homepage");
                     } else {
@@ -174,6 +182,10 @@ class _LoginState extends State<Login> {
                       ).show();
                     }
                   } on FirebaseAuthException catch (e) {
+                    isLoading = false;
+                    setState(() {
+                      
+                    });
                     if (e.code == 'invalid-credential') {
                       print('Wrong password provided for that user');
                       AwesomeDialog(
