@@ -1,4 +1,5 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_10/components/CustomButton.dart';
@@ -22,7 +23,8 @@ class _SignupState extends State<Signup> {
   TextEditingController password = TextEditingController();
   GlobalKey<FormState> formState = GlobalKey<FormState>();
  
-
+   CollectionReference user = FirebaseFirestore.instance.collection('user');
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -174,6 +176,16 @@ class _SignupState extends State<Signup> {
                       email: email.text,
                       password: password.text,
                     );
+           await user.add({
+          "user_id": FirebaseAuth.instance.currentUser!.uid,
+          "firstname": firstname.text,
+          "lastname": lastname.text,
+          "email": email.text,
+        //  "password": password.text, حذفتها عشان الخصوصية
+          "phone": phone.text,
+          "username": username.text,
+        });
+                    
                     await FirebaseAuth.instance.signOut();
                     AwesomeDialog(
                       context: context,
