@@ -1,4 +1,5 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_10/components/CustomButton.dart';
@@ -19,12 +20,13 @@ class _LoginState extends State<Login> {
 
   bool isLoading = false;
 
-  Future signInWithGoogle() async {
+Future signInWithGoogle() async {
+  try {
     // Trigger the authentication flow
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
     // Obtain the auth details from the request
-    final GoogleSignInAuthentication? googleAuth =
+    final GoogleSignInAuthentication? googleAuth = 
         await googleUser?.authentication;
 
     // Create a new credential
@@ -33,12 +35,40 @@ class _LoginState extends State<Login> {
       idToken: googleAuth?.idToken,
     );
 
-    // Once signed in, return the UserCredential
-    await FirebaseAuth.instance.signInWithCredential(credential);
+    // Sign in to Firebase with the Google credentials
+    final UserCredential userCredential = 
+        await FirebaseAuth.instance.signInWithCredential(credential);
 
-    // Navigate to the homepage and clear the navigation stack
+    // Get the user data from Google
+    final User? user = userCredential.user;
+    
+    // Check if this is a new user (first time signing in with Google)
+    if (userCredential.additionalUserInfo!.isNewUser) {
+      // Create a new document in Firestore for this user
+      await FirebaseFirestore.instance.collection('user').doc(user?.uid).set({
+        'user_id': user?.uid,
+        'username': user?.displayName ?? '',
+        'email': user?.email ?? '',
+        'firstname': user?.displayName?.split(' ').first ?? '',
+        'lastname': user?.displayName?.split(' ').last ?? '',
+        'phone': user?.phoneNumber ?? '',
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    }
+
+    // Navigate to the homepage
     Navigator.of(context).pushNamedAndRemoveUntil("homepage", (route) => false);
+  } catch (e) {
+    print("Error signing in with Google: $e");
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.error,
+      animType: AnimType.rightSlide,
+      title: 'Error',
+      desc: 'Failed to sign in with Google. Please try again.',
+    ).show();
   }
+}
 
   @override
   Widget build(BuildContext context) {

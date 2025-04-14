@@ -42,6 +42,8 @@ dependencies:
   cloud_firestore: ^5.6.5
   google_sign_in: ^6.2.2
   awesome_dialog: ^3.2.1
+  provider: ^6.1.4
+
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +72,8 @@ flutter:
     - images/sport-car.png
     - images/google.png
     - images/image.png
+    - images/truck.png
+    - images/construction.png
     
 
   # An image asset can refer to one or more resolution-specific "variants", see

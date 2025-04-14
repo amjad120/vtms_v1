@@ -21,6 +21,20 @@ class Vehiclecard extends StatelessWidget {
       required this.coverdDistance, 
      });
 
+       String getVehicleImage() {
+    switch (vehicleType.toLowerCase()) {
+      case 'car':
+        return "images/sport-car.png";
+      case 'truck':
+        return "images/truck.png"; // Make sure you have this image asset
+      case 'heavy equipment':
+        return "images/construction.png"; // Make sure you have this image asset
+      default:
+        return "images/sport-car.png"; // Default image
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -40,20 +54,23 @@ class Vehiclecard extends StatelessWidget {
           child: Column(
             children: [
               Row(
+
                 children: [
                   SizedBox(
+                    
                     height: 60,
-                    width: 60,
-                    child: Image.asset(
-                      "images/sport-car.png",
-                      height: 30,
-                      width: 30,
+                    width: 75,
+                    child:
+                     Image.asset(
+                      getVehicleImage(),
+                      height: 40,
+                      width: 40,
                     ),
                   ),
                   Expanded(
                     child: ListTile(
                         subtitle: Text(vehicleType),
-                        title: Text(vehicleName),
+                        title: Text(vehicleName , style: TextStyle(fontWeight: FontWeight.bold),),
                         trailing: Text(plateNumber)
                         ),
                   ),

@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_10/ProfilePage.dart';
 import 'package:flutter_application_10/Report.dart';
 import 'package:flutter_application_10/Settings.dart';
+import 'package:flutter_application_10/main.dart';
+
 import 'package:flutter_application_10/vehicleCard.dart';
 import 'package:flutter_application_10/AboutUs.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+
 
 class Homepage extends StatefulWidget {
   Homepage({super.key});
@@ -22,8 +26,10 @@ class _HomepageState extends State<Homepage> {
 
   List<QueryDocumentSnapshot> vechile_data = [];
   getVechileData() async {
-    QuerySnapshot querySnapshot1 =
-    await FirebaseFirestore.instance.collection('vehicle').where("id",isEqualTo: FirebaseAuth.instance.currentUser!.uid).get();
+    QuerySnapshot querySnapshot1 = await FirebaseFirestore.instance
+        .collection('vehicle')
+        .where("user_id", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+        .get();
     isLoading = false;
     vechile_data.addAll(querySnapshot1.docs);
     setState(() {});
@@ -109,14 +115,14 @@ class _HomepageState extends State<Homepage> {
                     );
                   },
                   child: Vehiclecard(
-                      docid: "${vechile_data[i].id}",
-                      vehicleName: "${vechile_data[i]["v_name"]}",
-                      chassisNumber:"${vechile_data[i]["chassisNumber"]}" ,
-                      plateNumber: "${vechile_data[i]["plateNumber"]}",
-                      color: "${vechile_data[i]["color"]}",
-                       vehicleType: "${vechile_data[i]["vehicleType"]}",
-                        coverdDistance: "${vechile_data[i]["coverdDistance"]}",
-                      ),
+                    docid: "${vechile_data[i].id}",
+                    vehicleName: "${vechile_data[i]["v_name"]}",
+                    chassisNumber: "${vechile_data[i]["chassisNumber"]}",
+                    plateNumber: "${vechile_data[i]["plateNumber"]}",
+                    color: "${vechile_data[i]["color"]}",
+                    vehicleType: "${vechile_data[i]["vehicleType"]}",
+                    coverdDistance: "${vechile_data[i]["coverdDistance"]}",
+                  ),
                 );
               },
               /* 
@@ -161,19 +167,19 @@ class _HomepageState extends State<Homepage> {
                     MaterialPageRoute(builder: (context) => ReportPage()));
               },
             ),
-            ListTile(
-              leading: const Icon(
-                Icons.settings,
-                size: 30,
-              ),
-              title: const Text(
-                "Settings",
-                style: TextStyle(fontSize: 18),
-              ),
-              onTap: () {
-                Navigator.of(context).pushNamed("settings");
-              },
-            ),
+       ListTile(
+  leading: Icon(Icons.dark_mode, size: 30),
+  title: Text("Dark mode", style: TextStyle(fontSize: 18)),
+  trailing: Switch(
+  value: Provider.of<ThemeNotifier>(context).isDarkMode,
+  onChanged: (value) {
+    Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
+  },
+),
+  onTap: () {
+    Provider.of<ThemeNotifier>(context, listen: false).toggleTheme();
+  },
+),
             ListTile(
               leading: const Icon(
                 Icons.info_outline_rounded,
