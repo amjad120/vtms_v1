@@ -7,10 +7,10 @@ import 'package:flutter_application_10/action/AddVehicle.dart';
 import 'package:flutter_application_10/action/UpdateVehicle.dart';
 import 'package:flutter_application_10/auth/login.dart';
 import 'package:flutter_application_10/auth/signup.dart';
-import 'package:provider/provider.dart'; // <-- إضافة هذه السطر
+import 'package:flutter_application_10/firebase_obd_services.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: FirebaseOptions(
@@ -20,10 +20,14 @@ void main() async {
       projectId: "vtms-e3714"
     )
   );
+  
   runApp(
-    ChangeNotifierProvider( // <-- تغليف التطبيق بـ Provider
-      create: (context) => ThemeNotifier(),
-      child: const myapp(),
+    MultiProvider(  // <-- استبدل ChangeNotifierProvider بـ MultiProvider
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+        Provider(create: (_) => FirestoreOBDService()),
+      ],
+      child: const MyApp(),
     ),
   );
 }
@@ -32,7 +36,7 @@ class ThemeNotifier with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.light;
 
   ThemeMode get themeMode => _themeMode;
-  bool get isDarkMode => _themeMode == ThemeMode.dark; // أضف هذه الخاصية
+  bool get isDarkMode => _themeMode == ThemeMode.dark;
 
   void toggleTheme() {
     _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
@@ -40,14 +44,14 @@ class ThemeNotifier with ChangeNotifier {
   }
 }
 
-class myapp extends StatefulWidget {
-  const myapp({super.key});
+class MyApp extends StatefulWidget {  // <-- تغيير myapp إلى MyApp (PascalCase)
+  const MyApp({super.key});
 
   @override
-  State<myapp> createState() => _myappStates();
+  State<MyApp> createState() => _MyAppState();
 }
 
-class _myappStates extends State<myapp> {
+class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     FirebaseAuth.instance
@@ -64,16 +68,17 @@ class _myappStates extends State<myapp> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>( // <-- استخدام Consumer لتتبع تغييرات الثيم
+    return Consumer<ThemeNotifier>(
       builder: (context, themeNotifier, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: ThemeData.light(), // الثيم الفاتح
-          darkTheme: ThemeData.dark(), // الثيم المظلم
-          themeMode: themeNotifier.themeMode, // تحديد الثيم الحالي
-          home: (FirebaseAuth.instance.currentUser != null && FirebaseAuth.instance.currentUser!.emailVerified) 
-              ? Login() 
-              : Homepage(),
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: themeNotifier.themeMode,
+          home: (FirebaseAuth.instance.currentUser != null && 
+                FirebaseAuth.instance.currentUser!.emailVerified) 
+              ? Homepage()  // <-- صححت هذا السطر (كان Login())
+              : Login(),
           routes: {
             "signup": (context) => Signup(),
             "login": (context) => Login(),

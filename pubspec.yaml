@@ -43,6 +43,13 @@ dependencies:
   google_sign_in: ^6.2.2
   awesome_dialog: ^3.2.1
   provider: ^6.1.4
+  flutter_blue_plus: ^1.35.3
+  syncfusion_flutter_gauges: ^29.1.37
+  path: ^1.9.0
+  sqflite: ^2.3.3+1
+  intl: ^0.20.2
+  firebase_database: ^11.3.5
+  convert: ^3.1.2
 
 
 dev_dependencies:

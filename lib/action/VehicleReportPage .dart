@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_application_10/firebase_obd_services.dart';
 
 class VehicleReportPage extends StatefulWidget {
   final String vehicleId;
-  final Map<String, dynamic>? initialObdData;
 
   const VehicleReportPage({
     Key? key,
     required this.vehicleId,
-    this.initialObdData,
   }) : super(key: key);
 
   @override
@@ -15,52 +16,32 @@ class VehicleReportPage extends StatefulWidget {
 }
 
 class _VehicleReportPageState extends State<VehicleReportPage> {
-  late Map<String, dynamic> _obdData;
+  late FirestoreOBDService _obdService;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _obdData = widget.initialObdData ?? _getDefaultObdData();
-    _fetchLiveObdData();
+    _obdService = FirestoreOBDService();
+    _setupLiveData();
   }
 
-  Map<String, dynamic> _getDefaultObdData() {
-    return {
-      'FUEL_LEVEL': '0 %',
-      'FUEL_STATUS': 'جاري القراءة...',
-      'FUEL_RATE': '0 L/h',
-      'SPEED': '0 km/h',
-      'RPM': '0 rpm',
-      'THROTTLE_POS': '0 %',
-      'ERRORS': [],
-    };
-  }
-
-  Future<void> _fetchLiveObdData() async {
-    // محاكاة جلب البيانات من OBD2 (استبدل بالاتصال الفعلي)
-    await Future.delayed(Duration(seconds: 2));
-
-    setState(() {
-      _obdData = {
-        'FUEL_LEVEL': '62.5 %',
-        'FUEL_STATUS': 'Closed loop',
-        'FUEL_RATE': '3.2 L/h',
-        'SPEED': '80 km/h',
-        'RPM': '2100 rpm',
-        'THROTTLE_POS': '25 %',
-        'ERRORS': ['P0172: نظام وقود غني'],
-      };
-      _isLoading = false;
+  void _setupLiveData() {
+    // الاستماع للتحديثات الحية من Firestore
+    _obdService.getLiveOBDUpdates(widget.vehicleId).listen((snapshot) {
+      if (snapshot.exists && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
 
   Future<void> _createNewReport() async {
-    setState(() {
-      _isLoading = true;
-      _obdData = _getDefaultObdData();
-    });
-    await _fetchLiveObdData();
+    setState(() => _isLoading = true);
+    // يمكنك إضافة منطق لحفظ تقرير جديد في Firestore هنا
+    await Future.delayed(Duration(seconds: 1)); // محاكاة للانتظار
+    setState(() => _isLoading = false);
   }
 
   Widget _buildDataCard(String title, List<Widget> children) {
@@ -71,13 +52,7 @@ class _VehicleReportPageState extends State<VehicleReportPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Divider(),
             ...children,
           ],
@@ -108,38 +83,52 @@ class _VehicleReportPageState extends State<VehicleReportPage> {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _isLoading ? null : _createNewReport,
-            tooltip: 'إنشاء تقرير جديد',
           ),
         ],
       ),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: _obdService.getLiveOBDUpdates(widget.vehicleId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('لا توجد بيانات متاحة'));
+          }
+
+          final obdData = snapshot.data!['obd_data']['live_data'] ?? {};
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildDataCard('الوقود', [
+                  _buildDataRow('المستوى', obdData['FUEL_LEVEL']?.toString() ?? 'N/A'),
+                  _buildDataRow('الحالة', obdData['FUEL_STATUS']?.toString() ?? 'N/A'),
+                  _buildDataRow('المعدل', obdData['FUEL_RATE']?.toString() ?? 'N/A'),
+                ]),
+                _buildDataCard('الأداء', [
+                  _buildDataRow('السرعة', '${obdData['SPEED'] ?? '0'} km/h'),
+                  _buildDataRow('لفات المحرك', '${obdData['RPM'] ?? '0'} rpm'),
+                  _buildDataRow('وضعية الدواسة', '${obdData['THROTTLE_POS'] ?? '0'} %'),
+                ]),
+                if (obdData['ERRORS'] != null && obdData['ERRORS'].isNotEmpty)
+                  _buildDataCard('الأعطال', [
+                    ...(obdData['ERRORS'] as List).map((error) => 
+                      _buildDataRow('خطأ', error.toString())).toList(),
+                  ]),
+              ],
+            ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _isLoading ? null : _createNewReport,
-        child: _isLoading ? CircularProgressIndicator(color: Colors.white) : Icon(Icons.add),
-        tooltip: 'تقرير جديد',
+        child: _isLoading 
+            ? CircularProgressIndicator(color: Colors.white) 
+            : Icon(Icons.add),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildDataCard('الوقود', [
-                    _buildDataRow('المستوى', _obdData['FUEL_LEVEL']),
-                    _buildDataRow('الحالة', _obdData['FUEL_STATUS']),
-                    _buildDataRow('معدل الاستهلاك', _obdData['FUEL_RATE']),
-                  ]),
-                  _buildDataCard('الأداء', [
-                    _buildDataRow('السرعة', _obdData['SPEED']),
-                    _buildDataRow('لفات المحرك', _obdData['RPM']),
-                    _buildDataRow('وضعية الدواسة', _obdData['THROTTLE_POS']),
-                  ]),
-                  if (_obdData['ERRORS'].isNotEmpty)
-                    _buildDataCard('الأعطال', [
-                      ..._obdData['ERRORS'].map((error) => _buildDataRow('خطأ', error)).toList(),
-                    ]),
-                ],
-              ),
-            ),
     );
   }
 }

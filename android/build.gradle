@@ -1,4 +1,24 @@
+buildscript {
+    ext.kotlin_version = '1.9.22' // ⬅️ أحدث إصدار مستقر من Kotlin (اعتبارًا من مايو 2024)
+    
+    repositories {
+        google()
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2' // ⬅️ تأكد من استخدام أحدث إصدار
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.4.1' // ⬅️ يمكن تحديثه إلى 4.4.2 إذا لزم الأمر
+    }
+}
 
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
 
 rootProject.buildDir = "../build"
 subprojects {
@@ -10,14 +30,4 @@ subprojects {
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
-}
-
-buildscript {
-     repositories {
-        google()
-        mavenCentral()
-    }
-  dependencies {
-    classpath 'com.google.gms:google-services:4.4.2'
-  }
 }
